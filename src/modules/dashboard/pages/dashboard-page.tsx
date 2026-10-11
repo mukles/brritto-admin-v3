@@ -12,7 +12,8 @@ const formatCurrency = (value: number) =>
 
 export function DashboardPage() {
   const user = useCurrentUser();
-  const { data, isError } = useDashboardStats();
+  const { data: response, error } = useDashboardStats();
+  const data = response?.data;
 
   return (
     <div className="space-y-6">
@@ -20,7 +21,7 @@ export function DashboardPage() {
         title={`Welcome back${user ? `, ${user.name.split(" ")[0]}` : ""}`}
         description="Here's what's happening across your workspace."
       />
-      {isError ? (
+      {error ? (
         <p className="text-sm text-destructive">
           Couldn't load dashboard stats.
         </p>

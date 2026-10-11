@@ -18,6 +18,6 @@ export const dashboardHandlers = [
       newSignups: { value: 38, change: -6.2 },
       revenue: { value: 48_290, change: 8.7 },
     };
-    return HttpResponse.json(stats);
+    return HttpResponse.json({ data: stats });
   }),
 ];

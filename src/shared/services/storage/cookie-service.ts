@@ -1,32 +1,29 @@
 import Cookies from "js-cookie";
 import { encryptionService } from "../encryption/encryption-service";
 
-type CookieKey = "accessToken" | "refreshToken";
+type Keys = "accessToken" | "refreshToken";
 
-const DEFAULT_OPTIONS: Cookies.CookieAttributes = {
-  path: "/",
-  sameSite: "Strict",
-  secure: window.location.protocol === "https:",
-};
+interface CookieOptions {
+  expires?: number | Date;
+  path?: string;
+  domain?: string;
+  secure?: boolean;
+  sameSite?: "Lax" | "Strict" | "None";
+}
 
 export const cookieService = {
-  setCookie(
-    name: CookieKey,
-    value: unknown,
-    options?: Cookies.CookieAttributes
-  ) {
-    Cookies.set(name, encryptionService.encrypt(value), {
-      ...DEFAULT_OPTIONS,
-      ...options,
-    });
+  setCookie(name: Keys, value: any, options?: CookieOptions): void {
+    const encryptedValue = encryptionService.encrypt(value);
+    Cookies.set(name, encryptedValue, options);
   },
 
-  getCookie<T = string>(name: CookieKey): T | null {
-    const encrypted = Cookies.get(name);
-    return encrypted ? encryptionService.decrypt<T>(encrypted) : null;
+  getCookie(name: Keys): any {
+    const encryptedValue = Cookies.get(name);
+    if (!encryptedValue) return null;
+    return encryptionService.decrypt(encryptedValue);
   },
 
-  removeCookie(name: CookieKey) {
-    Cookies.remove(name, { path: DEFAULT_OPTIONS.path });
+  removeCookie(name: Keys): void {
+    Cookies.remove(name);
   },
 };

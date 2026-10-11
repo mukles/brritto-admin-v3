@@ -1,10 +1,10 @@
 import { delay, HttpResponse } from "msw";
 import type { Permission } from "@/modules/auth";
-import { env } from "@/shared/config/env";
+import { ENV } from "@/shared/constant";
 import { findUserById, toAuthUser } from "./db";
 import { verifyAccessToken } from "./tokens";
 
-export const apiUrl = (path: string) => `${env.VITE_API_BASE_URL}${path}`;
+export const apiUrl = (path: string) => `${ENV.API_BASE_URL}${path}`;
 
 export const networkDelay = () =>
   delay(import.meta.env.MODE === "test" ? 0 : 300);

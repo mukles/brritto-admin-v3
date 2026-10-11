@@ -54,13 +54,14 @@ src/
 ├── shared/                  # Code with no feature knowledge, used by many modules
 │   ├── components/          # App-wide components (Logo, PageHeader, ErrorState…)
 │   │   └── ui/              # shadcn components, managed by the shadcn CLI
-│   ├── config/              # env.ts: validated environment variables
+│   ├── constant/            # ENV and shared constants (RoutePagination…)
 │   ├── hooks/               # useFetch, useMutation, useMobile
 │   ├── services/
-│   │   ├── http/            # fetch-based API client (api, ApiError)
+│   │   ├── api-client.ts    # fetch-based apiClient, used like axios
+│   │   ├── api-error.ts     # ApiError, NetworkError
 │   │   ├── storage/         # Encrypted cookies, localStorage, token storage
 │   │   └── encryption/      # AES encryption and JWT helpers
-│   ├── types/               # Types shared across modules (Paginated…)
+│   ├── types/               # ApiClient, ApiResponse, RequestConfig…
 │   └── utils/               # Pure helpers (cn…)
 ├── mocks/                   # MSW mock API used in development
 ├── assets/                  # Static images imported by code
@@ -77,7 +78,7 @@ src/modules/<feature>/
 ├── constants/     # Fixed values for this feature        demo-accounts.ts
 ├── hooks/         # React hooks                          use-login.ts, use-users.ts
 ├── pages/         # One component per route              login-page.tsx
-├── services/      # API calls and non-React logic        auth.api.ts, session.ts
+├── services/      # API calls and non-React logic        auth-service.ts, type.ts
 ├── stores/        # Zustand stores                       auth.store.ts
 ├── types/         # TypeScript types                     auth.types.ts
 ├── utils/         # Pure helper functions                permissions.ts
@@ -96,7 +97,7 @@ Folders that hold several files (`constants/`, `validations/`) have their own `i
 | A piece of UI used by one feature                  | `modules/<feature>/components/`                                               |
 | A piece of UI used by several features             | `shared/components/`                                                          |
 | A shadcn component                                 | `npx shadcn@latest add <name>` → `shared/components/ui/`                      |
-| An API call                                        | `modules/<feature>/services/<feature>.api.ts`                                 |
+| An API call                                        | `modules/<feature>/services/<feature>-service.ts` + `type.ts`                 |
 | A hook that loads data                             | `modules/<feature>/hooks/use-<thing>.ts`, built on `useFetch` / `useMutation` |
 | A form schema                                      | `modules/<feature>/validations/<form>-schema.ts`                              |
 | A fixed list or value (options, demo data, limits) | `modules/<feature>/constants/`                                                |
@@ -107,7 +108,7 @@ Folders that hold several files (`constants/`, `validations/`) have their own `i
 | A pure helper used everywhere                      | `shared/utils/`                                                               |
 | A sidebar link                                     | `app/layout/navigation.ts`                                                    |
 | A new permission                                   | `PERMISSIONS` in `modules/auth/types/auth.types.ts`                           |
-| A new environment variable                         | `shared/config/env.ts` and `.env.example`                                     |
+| A new environment variable                         | `ENV` in `shared/constant/env.ts` and `.env.example`                          |
 | A mock endpoint                                    | `mocks/handlers/<feature>.handlers.ts`                                        |
 
 Rules of thumb:
@@ -120,7 +121,7 @@ Rules of thumb:
 
 - File names are kebab-case everywhere, matching what shadcn generates: `login-form.tsx`, `use-login.ts`, `auth.store.ts`.
 - Names inside files stay idiomatic: components `LoginForm`, hooks `useLogin`, constants `DEMO_ACCOUNTS`, schemas `loginSchema`.
-- Suffixes show a file's role: `.api.ts`, `.store.ts`, `.types.ts`, `-schema.ts`, `-page.tsx`, `.handlers.ts`.
+- Suffixes show a file's role: `-service.ts`, `.store.ts`, `.types.ts`, `-schema.ts`, `-page.tsx`, `.handlers.ts`.
 
 ### Dependency rules
 
@@ -132,7 +133,7 @@ Rules of thumb:
 ### Adding a feature module
 
 1. Create `src/modules/<feature>/` with the folders you need and an `index.ts`.
-2. Put API calls in `services/<feature>.api.ts`, using `api` from `@/shared/services/http`.
+2. Put API calls in `services/<feature>-service.ts` as a `<feature>Service` object typed by an interface in `services/type.ts`, using `apiClient` from `@/shared/services/api-client` (`apiClient.get(url, { params })`, `apiClient.post(url, data)`). Return types use `ApiResponse<T>`.
 3. Wrap them in hooks in `hooks/`, using `useFetch` (reads) from `@/shared/hooks/use-fetch` or `useMutation` (writes) from `@/shared/hooks/use-mutation`.
 4. Build the screen in `pages/` from components in `components/`, and export the page from `index.ts`.
 5. Add a route under `src/app/router/routes/_protected/`. The route tree regenerates while the dev server runs.
@@ -148,12 +149,12 @@ In VS Code, install the recommended **Oxc** extension (`oxc.oxc-vscode`). The wo
 
 ## Authentication
 
-- **Tokens:** login returns `{ accessToken, refreshToken, user }`. Both tokens are stored in AES-encrypted cookies (`shared/services/storage/token-storage.ts`) and the user in encrypted `localStorage`. The encryption key is `VITE_STORAGE_SECRET_KEY`.
-- **Requests:** the API client (`shared/services/http/api-client.ts`) adds `Authorization: Bearer <accessToken>`. Pass `{ auth: false }` for public endpoints such as login.
-- **Refresh:** when a request gets a 401, the client calls `POST /auth/refresh` with the refresh token as `Bearer`, saves the new pair and retries once. Concurrent 401s share a single refresh request.
+- **Tokens:** login returns `{ data: { access_token, refresh_token } }` and the user is decoded from the access token's claims. Both tokens are stored in AES-encrypted cookies and the user in encrypted `localStorage`. The encryption key is `VITE_JWT_SECRET_KEY`.
+- **Requests:** `apiClient` (`shared/services/api-client.ts`) adds `Authorization: Bearer <accessToken>` from the cookie.
+- **Refresh:** when a request gets a 401, the client calls `POST /auth/refresh-token` with `{ refreshToken }`, saves the new pair and retries once. Concurrent 401s share a single refresh request.
 - **Rotation:** each refresh issues a new refresh token and spends the old one. If a spent token is used again, the mock revokes the whole token family. This is the reuse detection a real backend should implement.
 - **Session restore:** on startup, `initAuth()` restores the user from storage when the refresh token hasn't expired.
-- **Session end:** when a refresh fails or the user logs out, tokens and the stored user are cleared, and route guards redirect to `/login`.
+- **Session end:** when a refresh fails, the cookies are cleared and the page reloads, so route guards send the user to `/login`. Logout calls `POST /auth/logout` and clears tokens and the stored user.
 
 ### Role-based access control
 
@@ -168,15 +169,16 @@ The server sends each user's `permissions` along with the user. The client check
 
 The mock in `src/mocks/` defines the backend contract:
 
-| Endpoint               | Notes                                                         |
-| ---------------------- | ------------------------------------------------------------- |
-| `POST /auth/login`     | `{ email, password }` → `{ accessToken, refreshToken, user }` |
-| `POST /auth/refresh`   | `Authorization: Bearer <refreshToken>` → new token pair       |
-| `POST /auth/logout`    | Bearer access token → revokes the user's refresh tokens       |
-| `GET /dashboard/stats` | Requires `dashboard:view`                                     |
-| `GET /users`           | `?page&pageSize`, requires `users:read`                       |
+| Endpoint                   | Notes                                                                    |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `POST /auth/login`         | `{ email, password }` → `{ data: { access_token, refresh_token } }`      |
+| `POST /auth/refresh-token` | `{ refreshToken }` → `{ accessToken, refreshToken }`                     |
+| `POST /auth/logout`        | `{ refreshToken }` → revokes the user's refresh tokens                   |
+| `GET /auth/profile`        | → `{ data: user }`                                                       |
+| `GET /dashboard/stats`     | → `{ data: stats }`, requires `dashboard:view`                           |
+| `GET /users`               | `?page&pageSize` → `{ data, limit, page, total }`, requires `users:read` |
 
-`user` is `{ id, name, email, role, permissions }`. Error responses use the shape `{ message }`.
+The access token's claims carry the user: `{ id, name, email, role, permissions }`. Error responses use the shape `{ message }`.
 
 ## Security headers
 

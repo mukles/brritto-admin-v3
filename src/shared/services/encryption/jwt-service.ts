@@ -17,7 +17,6 @@ export const decodeJwt = <T extends JwtPayload = Session>(
   }
 };
 
-/** True when the token is a JWT whose `exp` has passed. Opaque tokens are never "expired". */
 export const isTokenExpired = (token: string): boolean => {
   const exp = decodeJwt(token)?.exp;
   return exp !== undefined && exp * 1000 <= Date.now();

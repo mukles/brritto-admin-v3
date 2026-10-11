@@ -10,8 +10,3 @@ export type User = {
   status: UserStatus;
   createdAt: string;
 };
-
-export type UsersQuery = {
-  page: number;
-  pageSize: number;
-};

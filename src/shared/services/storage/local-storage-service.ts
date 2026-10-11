@@ -1,26 +1,20 @@
 import { encryptionService } from "../encryption/encryption-service";
 
-type StorageKey = "user";
+type Keys = "accessToken" | "refreshToken" | "user";
 
 export const localStorageService = {
-  setItem(key: StorageKey, value: unknown) {
-    try {
-      localStorage.setItem(key, encryptionService.encrypt(value));
-    } catch {}
+  setItem(key: Keys, value: any): void {
+    const encryptedValue = encryptionService.encrypt(value);
+    localStorage.setItem(key, encryptedValue);
   },
 
-  getItem<T>(key: StorageKey): T | null {
-    try {
-      const encrypted = localStorage.getItem(key);
-      return encrypted ? encryptionService.decrypt<T>(encrypted) : null;
-    } catch {
-      return null;
-    }
+  getItem(key: Keys): any {
+    const encryptedValue = localStorage.getItem(key);
+    if (!encryptedValue) return null;
+    return encryptionService.decrypt(encryptedValue);
   },
 
-  removeItem(key: StorageKey) {
-    try {
-      localStorage.removeItem(key);
-    } catch {}
+  removeItem(key: Keys): void {
+    localStorage.removeItem(key);
   },
 };

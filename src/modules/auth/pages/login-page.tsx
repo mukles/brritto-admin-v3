@@ -1,5 +1,5 @@
 import { ThemeToggle } from "@/shared/components/theme-toggle";
-import { env } from "@/shared/config/env";
+import { ENV } from "@/shared/constant";
 import { BrandPanel } from "../components/brand-panel";
 import { LoginForm } from "../components/login-form";
 import { MobileBrandHeader } from "../components/mobile-brand-header";
@@ -31,7 +31,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
             </div>
             <LoginForm
               onSuccess={onSuccess}
-              demoAccounts={env.VITE_ENABLE_MOCKS ? DEMO_ACCOUNTS : []}
+              demoAccounts={ENV.ENABLE_MOCKS ? DEMO_ACCOUNTS : []}
             />
           </div>
         </div>

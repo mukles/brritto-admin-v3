@@ -2,11 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@/app/app";
 import { initAuth } from "@/modules/auth";
-import { env } from "@/shared/config/env";
+import { ENV } from "@/shared/constant";
 import "@/styles/globals.css";
 
 async function bootstrap() {
-  if (import.meta.env.VITE_ENABLE_MOCKS === "true" && env.VITE_ENABLE_MOCKS) {
+  if (ENV.ENABLE_MOCKS) {
     const { worker } = await import("@/mocks/browser");
     await worker.start({ onUnhandledRequest: "bypass" });
   }

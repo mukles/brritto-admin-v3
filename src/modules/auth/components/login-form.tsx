@@ -24,7 +24,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/shared/components/ui/input-group";
-import { ApiError } from "@/shared/services/http";
 import { useLogin } from "../hooks/use-login";
 import type { AuthUser, DemoAccount } from "../types/auth.types";
 import { loginSchema, type LoginValues } from "../validations";
@@ -126,9 +125,7 @@ export function LoginForm({ onSuccess, demoAccounts = [] }: LoginFormProps) {
         >
           <CircleAlertIcon className="mt-0.5 size-4 shrink-0" />
           <span>
-            {error instanceof ApiError
-              ? error.message
-              : "Something went wrong. Please try again."}
+            {error}
           </span>
         </div>
       )}

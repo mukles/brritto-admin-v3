@@ -1,3 +1,5 @@
+import type { AuthUser } from "@/modules/auth";
+
 export const ACCESS_TOKEN_TTL_S = 15 * 60;
 export const REFRESH_TOKEN_TTL_S = 7 * 24 * 60 * 60;
 
@@ -25,16 +27,17 @@ function saveStore(store: Record<string, RefreshRecord>) {
 }
 
 const base64Url = (value: object) =>
-  btoa(JSON.stringify(value))
+  btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))))
     .replace(/=+$/, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
 
-export function issueAccessToken(userId: string) {
+export function issueAccessToken(user: AuthUser) {
   const now = Math.floor(Date.now() / 1000);
   const header = base64Url({ alg: "none", typ: "JWT" });
   const payload = base64Url({
-    sub: userId,
+    sub: user.id,
+    ...user,
     iat: now,
     exp: now + ACCESS_TOKEN_TTL_S,
   });

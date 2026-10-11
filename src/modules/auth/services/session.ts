@@ -1,54 +1,53 @@
-import { toast } from "sonner";
-import { isTokenExpired } from "@/shared/services/encryption";
-import { setSessionExpiredHandler } from "@/shared/services/http";
-import { localStorageService, tokenStorage } from "@/shared/services/storage";
+import {
+  decodeJwt,
+  isTokenExpired,
+  localStorageService,
+  cookieService,
+} from "@/shared/services";
 import { useAuthStore } from "../stores/auth.store";
-import { authApi } from "./auth.api";
-import type { AuthUser, LoginCredentials } from "../types/auth.types";
-
-let signedOut = false;
+import type { AuthUser } from "../types/auth.types";
+import type { LoginValues } from "../validations";
+import { authService } from "./auth-service";
 
 function startSession(user: AuthUser) {
-  signedOut = false;
   localStorageService.setItem("user", user);
   useAuthStore.getState().setSession(user);
 }
 
 function endSession() {
-  tokenStorage.clearTokens();
+  cookieService.removeCookie("accessToken");
+  cookieService.removeCookie("refreshToken");
   localStorageService.removeItem("user");
   useAuthStore.getState().clearSession();
 }
 
-export async function login(credentials: LoginCredentials): Promise<AuthUser> {
-  const { user, accessToken, refreshToken } = await authApi.login(credentials);
-  tokenStorage.setTokens({ accessToken, refreshToken });
+function userFromToken(accessToken: string): AuthUser {
+  const claims = decodeJwt<AuthUser & { exp?: number }>(accessToken);
+  if (!claims) throw new Error("Invalid access token");
+  const { id, name, email, role, permissions } = claims;
+  return { id, name, email, role, permissions };
+}
+
+export async function login(credentials: LoginValues): Promise<AuthUser> {
+  const { data } = await authService.login(credentials);
+  cookieService.setCookie("accessToken", data.access_token);
+  cookieService.setCookie("refreshToken", data.refresh_token);
+  const user = userFromToken(data.access_token);
   startSession(user);
   return user;
 }
 
 export async function logout() {
-  signedOut = true;
   try {
-    await authApi.logout();
+    await authService.logout(cookieService.getCookie("refreshToken"));
   } finally {
     endSession();
   }
 }
 
-/** Restores the session from storage. Expired access tokens are refreshed on the first 401. */
 export function initAuth() {
-  setSessionExpiredHandler(() => {
-    const wasSignedIn = useAuthStore.getState().status === "authenticated";
-    endSession();
-    if (wasSignedIn && !signedOut)
-      toast.error("Your session expired. Please sign in again.", {
-        id: "session-expired",
-      });
-  });
-
-  const user = localStorageService.getItem<AuthUser>("user");
-  const refreshToken = tokenStorage.getRefreshToken();
+  const user: AuthUser | null = localStorageService.getItem("user");
+  const refreshToken: string | null = cookieService.getCookie("refreshToken");
   if (user && refreshToken && !isTokenExpired(refreshToken)) {
     useAuthStore.getState().setSession(user);
   } else {

@@ -11,11 +11,12 @@ const PAGE_SIZE = 10;
 
 export function UsersPage() {
   const [page, setPage] = useState(1);
-  const { data, isError, isFetching } = useUsers({
+  const { data, error, isLoading } = useUsers({
     page,
     pageSize: PAGE_SIZE,
   });
-  const pageCount = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+  const total = data?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-6">
@@ -32,21 +33,21 @@ export function UsersPage() {
           </Can>
         }
       />
-      {isError ? (
+      {error ? (
         <p className="text-sm text-destructive">Couldn't load users.</p>
       ) : (
         <>
           <UsersTable users={data?.data} skeletonRows={PAGE_SIZE} />
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground">
-              {data ? `${data.total} users` : " "}
+              {data ? `${total} users` : " "}
             </p>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => p - 1)}
-                disabled={page <= 1 || isFetching}
+                disabled={page <= 1 || isLoading}
               >
                 Previous
               </Button>
@@ -57,7 +58,7 @@ export function UsersPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => p + 1)}
-                disabled={page >= pageCount || isFetching}
+                disabled={page >= pageCount || isLoading}
               >
                 Next
               </Button>

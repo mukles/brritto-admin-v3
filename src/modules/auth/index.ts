@@ -12,10 +12,10 @@ export {
 export {
   PERMISSIONS,
   ROLES,
-  type AuthSession,
   type AuthUser,
   type Permission,
   type Role,
+  type Token,
 } from "./types/auth.types";
 export {
   hasAllPermissions,

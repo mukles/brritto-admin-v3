@@ -1,6 +1,5 @@
 import { http, HttpResponse } from "msw";
 import type { User } from "@/modules/users";
-import type { Paginated } from "@/shared/types/api";
 import { users } from "../db";
 import { apiUrl, authenticate, networkDelay } from "../utils";
 
@@ -22,11 +21,11 @@ export const usersHandlers = [
     const pageSize = clamp(Number(params.get("pageSize")) || 10, 1, 100);
     const start = (page - 1) * pageSize;
 
-    const body: Paginated<User> = {
+    const body: { data: User[]; limit: number; page: number; total: number } = {
       data: users.slice(start, start + pageSize),
-      total: users.length,
+      limit: pageSize,
       page,
-      pageSize,
+      total: users.length,
     };
     return HttpResponse.json(body);
   }),

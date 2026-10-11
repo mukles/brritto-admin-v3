@@ -1,22 +1,16 @@
+import { ENV } from "@/shared/constant";
 import CryptoJS from "crypto-js";
-import { env } from "@/shared/config/env";
 
 export const encryptionService = {
-  encrypt(data: unknown): string {
+  encrypt(data: Record<string, any>): string {
     const stringData: string = JSON.stringify(data);
-    return CryptoJS.AES.encrypt(
-      stringData,
-      env.VITE_STORAGE_SECRET_KEY
-    ).toString();
+    return CryptoJS.AES.encrypt(stringData, ENV.JWT_SECRET_KEY).toString();
   },
 
-  decrypt<T = unknown>(cipherText: string): T | null {
+  decrypt(cipherText: string): any {
     try {
-      const bytes = CryptoJS.AES.decrypt(
-        cipherText,
-        env.VITE_STORAGE_SECRET_KEY
-      );
-      return JSON.parse(bytes.toString(CryptoJS.enc.Utf8)) as T;
+      const bytes = CryptoJS.AES.decrypt(cipherText, ENV.JWT_SECRET_KEY);
+      return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
     } catch (error) {
       console.error("Decryption failed:", error);
       return null;

@@ -1,79 +1,77 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import { toError } from "@/shared/services/http";
+import { useEffect, useState } from "react";
+import type { ApiErrorResponse } from "../types";
 
-type FetchConfig<T> = {
-  skip?: boolean;
+type Init<T> = {
+  isLoading: boolean;
+  isSuccess: boolean;
+  error: string;
+  data: null | T;
+};
+
+type Config<T> = {
   onSuccess?: (data: T) => void;
-  onError?: (error: Error) => void;
+  onError?: (error: string) => void;
+  skip?: boolean;
+  initialData?: Init<T>;
 };
 
-type FetchState<T> = {
-  data: T | undefined;
-  error: Error | null;
-  /** Identifies the request this state belongs to; differs from the current one while fetching. */
-  requestId: string | null;
+const defaultConfig = {
+  onSuccess: () => {},
+  onError: () => {},
+  skip: false,
+  initialData: {
+    isLoading: false,
+    isSuccess: false,
+    error: "",
+    data: null,
+  },
 };
 
-/**
- * Runs `callback` on mount and whenever `deps` change (compared by value).
- * The in-flight request is aborted when deps change or the component unmounts,
- * so a slow stale response never overwrites a newer one. Previous data is kept
- * while the next request loads.
- */
-export function useFetch<T>(
-  callback: (signal: AbortSignal) => Promise<T>,
-  { skip = false, ...config }: FetchConfig<T> = {},
-  deps: readonly unknown[] = []
-) {
-  const [state, setState] = useState<FetchState<T>>({
-    data: undefined,
-    error: null,
-    requestId: null,
-  });
-  const [version, setVersion] = useState(0);
-  const latestRef = useRef({ callback, config });
-  const requestId = `${version}:${JSON.stringify(deps)}`;
-
-  useLayoutEffect(() => {
-    latestRef.current = { callback, config };
-  });
+export const useFetch = <T>(
+  callback: () => Promise<T>,
+  config: Config<T> = defaultConfig,
+  deps: any[] = [],
+) => {
+  const { onSuccess, onError, skip, initialData } = config;
+  const [state, setState] = useState<Init<T>>(
+    initialData || defaultConfig.initialData,
+  );
 
   useEffect(() => {
     if (skip) return;
-    const controller = new AbortController();
-    const { callback, config } = latestRef.current;
-    callback(controller.signal).then(
-      (data) => {
-        if (controller.signal.aborted) return;
-        setState({ data, error: null, requestId });
-        config.onSuccess?.(data);
-      },
-      (cause: unknown) => {
-        if (controller.signal.aborted) return;
-        const error = toError(cause);
-        setState((prev) => ({ data: prev.data, error, requestId }));
-        config.onError?.(error);
-      }
-    );
-    return () => controller.abort();
-  }, [skip, requestId]);
 
-  const isFetching = !skip && state.requestId !== requestId;
-  const error = isFetching ? null : state.error;
+    fetching();
+  }, [skip, ...deps]);
 
-  return {
-    data: state.data,
-    error,
-    isLoading: isFetching && state.data === undefined,
-    isFetching,
-    isSuccess: !isFetching && state.requestId !== null && error === null,
-    isError: error !== null,
-    refetch: useCallback(() => setVersion((v) => v + 1), []),
+  const fetching = async () => {
+    setState({
+      isLoading: true,
+      isSuccess: false,
+      error: "",
+      data: state.data,
+    });
+    try {
+      const data = await callback();
+      setState({
+        isLoading: false,
+        isSuccess: true,
+        data,
+        error: "",
+      });
+      onSuccess?.(data);
+    } catch (error: unknown) {
+      const err = error as ApiErrorResponse;
+      const message =
+        err.response?.data.message || err.message || "Something went wrong";
+      setState({
+        isLoading: false,
+        isSuccess: false,
+        data: state.data,
+        error: message,
+      });
+      onError?.(message);
+    }
   };
-}
+
+  return { ...state, refetch: fetching };
+};

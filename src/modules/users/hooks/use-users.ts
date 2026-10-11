@@ -1,7 +1,13 @@
 import { useFetch } from "@/shared/hooks/use-fetch";
-import { usersApi } from "../services/users.api";
-import type { UsersQuery } from "../types/user.types";
+import type { RoutePagination } from "@/shared/constant";
+import { usersService } from "../services";
 
-export function useUsers(query: UsersQuery) {
-  return useFetch((signal) => usersApi.list(query, signal), {}, [query]);
+export function useUsers(params: RoutePagination) {
+  return useFetch(() => usersService.getUsers(params), {}, [
+    params.page,
+    params.pageSize,
+    params.search,
+    params.startDate,
+    params.endDate,
+  ]);
 }

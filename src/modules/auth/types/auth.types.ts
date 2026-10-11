@@ -1,5 +1,3 @@
-import type { AuthTokens } from "@/shared/services/storage";
-
 export const ROLES = ["admin", "manager", "viewer"] as const;
 export type Role = (typeof ROLES)[number];
 
@@ -25,6 +23,7 @@ export type LoginCredentials = {
 
 export type DemoAccount = LoginCredentials & { role: Role };
 
-export type AuthSession = AuthTokens & {
-  user: AuthUser;
+export type Token = {
+  access_token: string;
+  refresh_token: string;
 };

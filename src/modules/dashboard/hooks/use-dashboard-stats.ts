@@ -1,6 +1,6 @@
 import { useFetch } from "@/shared/hooks/use-fetch";
-import { dashboardApi } from "../services/dashboard.api";
+import { dashboardService } from "../services";
 
 export function useDashboardStats() {
-  return useFetch(dashboardApi.getStats);
+  return useFetch(() => dashboardService.getStats());
 }

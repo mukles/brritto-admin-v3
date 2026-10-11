@@ -21,6 +21,7 @@
     "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-router": "^1.170.41",
     "@tanstack/router-core": "^1.171.35",
+    "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "crypto-js": "^4.2.0",
