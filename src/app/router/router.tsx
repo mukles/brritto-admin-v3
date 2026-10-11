@@ -1,17 +1,15 @@
-import { createRouter } from '@tanstack/react-router'
-import { useAuthStore } from '@/modules/auth'
-import { ErrorState } from '@/shared/components/error-state'
-import { PageLoader } from '@/shared/components/page-loader'
-import { queryClient } from '../providers/query-client'
-import { routeTree } from './route-tree.gen'
+import { createRouter } from "@tanstack/react-router";
+import { useAuthStore } from "@/modules/auth";
+import { ErrorState } from "@/shared/components/error-state";
+import { PageLoader } from "@/shared/components/page-loader";
+import { routeTree } from "./route-tree.gen";
 
 export const router = createRouter({
   routeTree,
   context: {
-    queryClient,
     auth: () => useAuthStore.getState(),
   },
-  defaultPreload: 'intent',
+  defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
   defaultPendingComponent: PageLoader,
@@ -21,17 +19,16 @@ export const router = createRouter({
       description={error instanceof Error ? error.message : undefined}
     />
   ),
-})
+});
 
 useAuthStore.subscribe((state, previous) => {
-  if (previous.status === 'authenticated' && state.status !== 'authenticated') {
-    queryClient.clear()
-    void router.invalidate()
+  if (previous.status === "authenticated" && state.status !== "authenticated") {
+    void router.invalidate();
   }
-})
+});
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
-    router: typeof router
+    router: typeof router;
   }
 }

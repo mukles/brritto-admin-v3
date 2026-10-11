@@ -1,11 +1,11 @@
 export type StatMetric = {
-  value: number
-  change: number
-}
+  value: number;
+  change: number;
+};
 
 export type DashboardStats = {
-  totalUsers: StatMetric
-  activeUsers: StatMetric
-  newSignups: StatMetric
-  revenue: StatMetric
-}
+  totalUsers: StatMetric;
+  activeUsers: StatMetric;
+  newSignups: StatMetric;
+  revenue: StatMetric;
+};

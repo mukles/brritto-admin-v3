@@ -1,20 +1,18 @@
-import { create } from 'zustand'
-import type { AuthSession, AuthUser } from '../types/auth.types'
+import { create } from "zustand";
+import type { AuthUser } from "../types/auth.types";
 
-export type AuthStatus = 'pending' | 'authenticated' | 'unauthenticated'
+export type AuthStatus = "pending" | "authenticated" | "unauthenticated";
 
 export type AuthState = {
-  status: AuthStatus
-  user: AuthUser | null
-  accessToken: string | null
-  setSession: (session: AuthSession) => void
-  clearSession: () => void
-}
+  status: AuthStatus;
+  user: AuthUser | null;
+  setSession: (user: AuthUser) => void;
+  clearSession: () => void;
+};
 
 export const useAuthStore = create<AuthState>()((set) => ({
-  status: 'pending',
+  status: "pending",
   user: null,
-  accessToken: null,
-  setSession: ({ accessToken, user }) => set({ status: 'authenticated', accessToken, user }),
-  clearSession: () => set({ status: 'unauthenticated', accessToken: null, user: null }),
-}))
+  setSession: (user) => set({ status: "authenticated", user }),
+  clearSession: () => set({ status: "unauthenticated", user: null }),
+}));

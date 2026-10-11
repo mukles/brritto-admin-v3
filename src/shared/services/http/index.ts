@@ -1,10 +1,7 @@
 export {
   api,
   apiRequest,
-  configureApiAuth,
-  CSRF_COOKIE,
-  CSRF_HEADER,
-  type ApiAuthHooks,
+  setSessionExpiredHandler,
   type RequestOptions,
-} from './api-client'
-export { ApiError } from './api-error'
+} from "./api-client";
+export { ApiError, NetworkError, getErrorMessage, toError } from "./api-error";

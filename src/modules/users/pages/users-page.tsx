@@ -1,21 +1,21 @@
-import { PlusIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { Can } from '@/modules/auth'
-import { PageHeader } from '@/shared/components/page-header'
-import { Button } from '@/shared/components/ui/button'
-import { UsersTable } from '../components/users-table'
-import { useUsers } from '../hooks/use-users'
+import { PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Can } from "@/modules/auth";
+import { PageHeader } from "@/shared/components/page-header";
+import { Button } from "@/shared/components/ui/button";
+import { UsersTable } from "../components/users-table";
+import { useUsers } from "../hooks/use-users";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 export function UsersPage() {
-  const [page, setPage] = useState(1)
-  const { data, isError, isPlaceholderData } = useUsers({
+  const [page, setPage] = useState(1);
+  const { data, isError, isFetching } = useUsers({
     page,
     pageSize: PAGE_SIZE,
-  })
-  const pageCount = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
+  });
+  const pageCount = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   return (
     <div className="space-y-6">
@@ -24,25 +24,29 @@ export function UsersPage() {
         description="Manage who can access the admin panel."
         actions={
           <Can permission="users:write">
-            <Button onClick={() => toast.info('Inviting users is not built yet.')}>
+            <Button
+              onClick={() => toast.info("Inviting users is not built yet.")}
+            >
               <PlusIcon /> Invite user
             </Button>
           </Can>
         }
       />
       {isError ? (
-        <p className="text-destructive text-sm">Couldn't load users.</p>
+        <p className="text-sm text-destructive">Couldn't load users.</p>
       ) : (
         <>
           <UsersTable users={data?.data} skeletonRows={PAGE_SIZE} />
           <div className="flex items-center justify-between gap-2">
-            <p className="text-muted-foreground text-sm">{data ? `${data.total} users` : ' '}</p>
+            <p className="text-sm text-muted-foreground">
+              {data ? `${data.total} users` : " "}
+            </p>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => p - 1)}
-                disabled={page <= 1 || isPlaceholderData}
+                disabled={page <= 1 || isFetching}
               >
                 Previous
               </Button>
@@ -53,7 +57,7 @@ export function UsersPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => p + 1)}
-                disabled={page >= pageCount || isPlaceholderData}
+                disabled={page >= pageCount || isFetching}
               >
                 Next
               </Button>
@@ -62,5 +66,5 @@ export function UsersPage() {
         </>
       )}
     </div>
-  )
+  );
 }

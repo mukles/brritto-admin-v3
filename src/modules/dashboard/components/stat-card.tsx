@@ -1,26 +1,30 @@
-import { TrendingDownIcon, TrendingUpIcon } from 'lucide-react'
-import { Badge } from '@/shared/components/ui/badge'
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
   CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/shared/components/ui/card'
-import { Skeleton } from '@/shared/components/ui/skeleton'
-import type { StatMetric } from '../types/dashboard.types'
+} from "@/shared/components/ui/card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import type { StatMetric } from "../types/dashboard.types";
 
 type StatCardProps = {
-  label: string
-  metric?: StatMetric
-  format?: (value: number) => string
-}
+  label: string;
+  metric?: StatMetric;
+  format?: (value: number) => string;
+};
 
-const formatNumber = (value: number) => value.toLocaleString()
+const formatNumber = (value: number) => value.toLocaleString();
 
-export function StatCard({ label, metric, format = formatNumber }: StatCardProps) {
-  const isUp = (metric?.change ?? 0) >= 0
-  const TrendIcon = isUp ? TrendingUpIcon : TrendingDownIcon
+export function StatCard({
+  label,
+  metric,
+  format = formatNumber,
+}: StatCardProps) {
+  const isUp = (metric?.change ?? 0) >= 0;
+  const TrendIcon = isUp ? TrendingUpIcon : TrendingDownIcon;
 
   return (
     <Card>
@@ -33,12 +37,12 @@ export function StatCard({ label, metric, format = formatNumber }: StatCardProps
           <CardAction>
             <Badge variant="outline">
               <TrendIcon />
-              {isUp ? '+' : ''}
+              {isUp ? "+" : ""}
               {metric.change.toFixed(1)}%
             </Badge>
           </CardAction>
         )}
       </CardHeader>
     </Card>
-  )
+  );
 }

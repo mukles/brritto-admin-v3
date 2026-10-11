@@ -3,7 +3,8 @@
   --animate-props-in: props-in 0.8s ease-out 0.1s both;
   --animate-mascot-breathe: mascot-breathe 3.6s ease-in-out infinite alternate;
   --animate-mascot-shadow: mascot-shadow 3.6s ease-in-out infinite alternate;
-  --animate-mascot-sway: mascot-sway 3.2s ease-in-out var(--sway-delay, 0s) infinite alternate;
+  --animate-mascot-sway: mascot-sway 3.2s ease-in-out var(--sway-delay, 0s)
+    infinite alternate;
   --animate-mascot-blink: mascot-blink 5.2s ease-in-out 1.5s infinite;
   --animate-mascot-think: mascot-think 2.8s ease-in-out infinite alternate;
   --animate-mascot-read: mascot-read 2.6s ease-in-out infinite;

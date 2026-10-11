@@ -1,7 +1,11 @@
-import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
-import { ErrorState } from '@/shared/components/error-state'
-import { Button } from '@/shared/components/ui/button'
-import type { RouterContext } from '@/app/router/context'
+import {
+  createRootRouteWithContext,
+  Link,
+  Outlet,
+} from "@tanstack/react-router";
+import { ErrorState } from "@/shared/components/error-state";
+import { Button } from "@/shared/components/ui/button";
+import type { RouterContext } from "@/app/router/context";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: Outlet,
@@ -17,4 +21,4 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       }
     />
   ),
-})
+});

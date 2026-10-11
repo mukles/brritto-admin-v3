@@ -1,8 +1,9 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 const envSchema = z.object({
-  VITE_API_BASE_URL: z.string().min(1).default('/api'),
+  VITE_API_BASE_URL: z.string().min(1).default("/api"),
   VITE_ENABLE_MOCKS: z.stringbool().default(false),
-})
+  VITE_STORAGE_SECRET_KEY: z.string().min(1),
+});
 
-export const env = envSchema.parse(import.meta.env)
+export const env = envSchema.parse(import.meta.env);

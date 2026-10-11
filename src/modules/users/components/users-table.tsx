@@ -1,5 +1,5 @@
-import { Badge } from '@/shared/components/ui/badge'
-import { Skeleton } from '@/shared/components/ui/skeleton'
+import { Badge } from "@/shared/components/ui/badge";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -7,21 +7,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/shared/components/ui/table'
-import type { User, UserStatus } from '../types/user.types'
+} from "@/shared/components/ui/table";
+import type { User, UserStatus } from "../types/user.types";
 
 const STATUS_VARIANT = {
-  active: 'default',
-  invited: 'secondary',
-  suspended: 'destructive',
-} as const satisfies Record<UserStatus, string>
+  active: "default",
+  invited: "secondary",
+  suspended: "destructive",
+} as const satisfies Record<UserStatus, string>;
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
+const dateFormatter = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+});
 
 type UsersTableProps = {
-  users?: User[]
-  skeletonRows?: number
-}
+  users?: User[];
+  skeletonRows?: number;
+};
 
 export function UsersTable({ users, skeletonRows = 5 }: UsersTableProps) {
   return (
@@ -41,11 +43,16 @@ export function UsersTable({ users, skeletonRows = 5 }: UsersTableProps) {
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="font-medium">{user.name}</div>
-                    <div className="text-muted-foreground text-xs">{user.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {user.email}
+                    </div>
                   </TableCell>
                   <TableCell className="capitalize">{user.role}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[user.status]} className="capitalize">
+                    <Badge
+                      variant={STATUS_VARIANT[user.status]}
+                      className="capitalize"
+                    >
                       {user.status}
                     </Badge>
                   </TableCell>
@@ -63,7 +70,10 @@ export function UsersTable({ users, skeletonRows = 5 }: UsersTableProps) {
               ))}
           {users?.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-muted-foreground h-24 text-center">
+              <TableCell
+                colSpan={4}
+                className="h-24 text-center text-muted-foreground"
+              >
                 No users found.
               </TableCell>
             </TableRow>
@@ -71,5 +81,5 @@ export function UsersTable({ users, skeletonRows = 5 }: UsersTableProps) {
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

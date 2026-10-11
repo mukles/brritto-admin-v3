@@ -1,24 +1,30 @@
-export const ROLES = ['admin', 'manager', 'viewer'] as const
-export type Role = (typeof ROLES)[number]
+import type { AuthTokens } from "@/shared/services/storage";
 
-export const PERMISSIONS = ['dashboard:view', 'users:read', 'users:write'] as const
-export type Permission = (typeof PERMISSIONS)[number]
+export const ROLES = ["admin", "manager", "viewer"] as const;
+export type Role = (typeof ROLES)[number];
+
+export const PERMISSIONS = [
+  "dashboard:view",
+  "users:read",
+  "users:write",
+] as const;
+export type Permission = (typeof PERMISSIONS)[number];
 
 export type AuthUser = {
-  id: string
-  name: string
-  email: string
-  role: Role
-  permissions: Permission[]
-}
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  permissions: Permission[];
+};
 
 export type LoginCredentials = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
-export type AuthSession = {
-  accessToken: string
-  expiresIn: number
-  user: AuthUser
-}
+export type DemoAccount = LoginCredentials & { role: Role };
+
+export type AuthSession = AuthTokens & {
+  user: AuthUser;
+};

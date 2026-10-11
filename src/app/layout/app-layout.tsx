@@ -1,14 +1,18 @@
-import { Outlet } from '@tanstack/react-router'
-import { ThemeToggle } from '@/shared/components/theme-toggle'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/shared/components/ui/sidebar'
-import { AppSidebar } from './app-sidebar'
+import { Outlet } from "@tanstack/react-router";
+import { ThemeToggle } from "@/shared/components/theme-toggle";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/shared/components/ui/sidebar";
+import { AppSidebar } from "./app-sidebar";
 
 export function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="bg-background sticky top-0 z-10 flex h-14 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
             <ThemeToggle />
@@ -19,5 +23,5 @@ export function AppLayout() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

@@ -1,69 +1,57 @@
-import { toast } from 'sonner'
-import { configureApiAuth } from '@/shared/services/http'
-import { useAuthStore } from '../stores/auth.store'
-import type { AuthSession, AuthUser, LoginCredentials } from '../types/auth.types'
-import { authApi } from './auth.api'
+import { toast } from "sonner";
+import { isTokenExpired } from "@/shared/services/encryption";
+import { setSessionExpiredHandler } from "@/shared/services/http";
+import { localStorageService, tokenStorage } from "@/shared/services/storage";
+import { useAuthStore } from "../stores/auth.store";
+import { authApi } from "./auth.api";
+import type { AuthUser, LoginCredentials } from "../types/auth.types";
 
-const REFRESH_LEEWAY_MS = 60_000
+let signedOut = false;
 
-let refreshTimer: ReturnType<typeof setTimeout> | undefined
-let inflightRefresh: Promise<boolean> | null = null
-let signedOut = false
-
-function startSession(session: AuthSession) {
-  signedOut = false
-  useAuthStore.getState().setSession(session)
-  clearTimeout(refreshTimer)
-  const delay = Math.max(session.expiresIn * 1000 - REFRESH_LEEWAY_MS, 0)
-  refreshTimer = setTimeout(() => void refreshSession(), delay)
+function startSession(user: AuthUser) {
+  signedOut = false;
+  localStorageService.setItem("user", user);
+  useAuthStore.getState().setSession(user);
 }
 
 function endSession() {
-  clearTimeout(refreshTimer)
-  useAuthStore.getState().clearSession()
-}
-
-export function refreshSession(): Promise<boolean> {
-  inflightRefresh ??= authApi
-    .refresh()
-    .then((session) => {
-      startSession(session)
-      return true
-    })
-    .catch(() => {
-      endSession()
-      return false
-    })
-    .finally(() => {
-      inflightRefresh = null
-    })
-  return inflightRefresh
+  tokenStorage.clearTokens();
+  localStorageService.removeItem("user");
+  useAuthStore.getState().clearSession();
 }
 
 export async function login(credentials: LoginCredentials): Promise<AuthUser> {
-  const session = await authApi.login(credentials)
-  startSession(session)
-  return session.user
+  const { user, accessToken, refreshToken } = await authApi.login(credentials);
+  tokenStorage.setTokens({ accessToken, refreshToken });
+  startSession(user);
+  return user;
 }
 
 export async function logout() {
-  signedOut = true
+  signedOut = true;
   try {
-    await authApi.logout()
+    await authApi.logout();
   } finally {
-    endSession()
+    endSession();
   }
 }
 
+/** Restores the session from storage. Expired access tokens are refreshed on the first 401. */
 export function initAuth() {
-  configureApiAuth({
-    getAccessToken: () => useAuthStore.getState().accessToken,
-    refreshSession,
-    onSessionExpired: () => {
-      endSession()
-      if (!signedOut)
-        toast.error('Your session expired. Please sign in again.', { id: 'session-expired' })
-    },
-  })
-  return refreshSession()
+  setSessionExpiredHandler(() => {
+    const wasSignedIn = useAuthStore.getState().status === "authenticated";
+    endSession();
+    if (wasSignedIn && !signedOut)
+      toast.error("Your session expired. Please sign in again.", {
+        id: "session-expired",
+      });
+  });
+
+  const user = localStorageService.getItem<AuthUser>("user");
+  const refreshToken = tokenStorage.getRefreshToken();
+  if (user && refreshToken && !isTokenExpired(refreshToken)) {
+    useAuthStore.getState().setSession(user);
+  } else {
+    endSession();
+  }
 }

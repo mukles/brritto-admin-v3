@@ -10,7 +10,6 @@ import {
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Button } from "@/shared/components/ui/button";
 import {
   Field,
@@ -27,16 +26,8 @@ import {
 } from "@/shared/components/ui/input-group";
 import { ApiError } from "@/shared/services/http";
 import { useLogin } from "../hooks/use-login";
-import type { AuthUser, LoginCredentials, Role } from "../types/auth.types";
-
-const loginSchema = z.object({
-  email: z.email("Enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
-
-export type DemoAccount = LoginCredentials & { role: Role };
+import type { AuthUser, DemoAccount } from "../types/auth.types";
+import { loginSchema, type LoginValues } from "../validations";
 
 type LoginFormProps = {
   onSuccess: (user: AuthUser) => void;
@@ -45,20 +36,18 @@ type LoginFormProps = {
 
 export function LoginForm({ onSuccess, demoAccounts = [] }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const { mutate, isPending, error, reset } = useLogin();
+  const [login, { isLoading, error, reset }] = useLogin();
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = form.handleSubmit((values) =>
-    mutate(values, {
-      onSuccess: (user) => {
-        toast.success(`Welcome back, ${user.name.split(" ")[0]}`);
-        onSuccess(user);
-      },
-    }),
-  );
+  const onSubmit = form.handleSubmit(async (values) => {
+    const user = await login(values);
+    if (!user) return;
+    toast.success(`Welcome back, ${user.name.split(" ")[0]}`);
+    onSuccess(user);
+  });
 
   const fillDemoAccount = ({ email, password }: DemoAccount) => {
     reset();
@@ -133,7 +122,7 @@ export function LoginForm({ onSuccess, demoAccounts = [] }: LoginFormProps) {
       {error && (
         <div
           role="alert"
-          className="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm"
+          className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
         >
           <CircleAlertIcon className="mt-0.5 size-4 shrink-0" />
           <span>
@@ -147,11 +136,11 @@ export function LoginForm({ onSuccess, demoAccounts = [] }: LoginFormProps) {
       <Button
         type="submit"
         size="lg"
-        disabled={isPending}
+        disabled={isLoading}
         className="h-10 w-full"
       >
-        {isPending && <Loader2Icon className="animate-spin" />}
-        {isPending ? "Signing in…" : "Sign in"}
+        {isLoading && <Loader2Icon className="animate-spin" />}
+        {isLoading ? "Signing in…" : "Sign in"}
       </Button>
 
       {demoAccounts.length > 0 && (

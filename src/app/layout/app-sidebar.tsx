@@ -1,6 +1,6 @@
-import { Link, useMatchRoute } from '@tanstack/react-router'
-import { useCurrentUser, hasPermission } from '@/modules/auth'
-import { Logo, LogoMark } from '@/shared/components/logo'
+import { Link, useMatchRoute } from "@tanstack/react-router";
+import { useCurrentUser, hasPermission } from "@/modules/auth";
+import { Logo, LogoMark } from "@/shared/components/logo";
 import {
   Sidebar,
   SidebarContent,
@@ -12,18 +12,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from '@/shared/components/ui/sidebar'
-import { NAV_ITEMS } from './navigation'
-import { UserMenu } from './user-menu'
+} from "@/shared/components/ui/sidebar";
+import { NAV_ITEMS } from "./navigation";
+import { UserMenu } from "./user-menu";
 
 export function AppSidebar() {
-  const user = useCurrentUser()
-  const matchRoute = useMatchRoute()
-  const items = NAV_ITEMS.filter((item) => !item.permission || hasPermission(user, item.permission))
+  const user = useCurrentUser();
+  const matchRoute = useMatchRoute();
+  const items = NAV_ITEMS.filter(
+    (item) => !item.permission || hasPermission(user, item.permission)
+  );
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-sidebar-border h-14 justify-center border-b py-0">
+      <SidebarHeader className="h-14 justify-center border-b border-sidebar-border py-0">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -32,7 +34,7 @@ export function AppSidebar() {
               className="group-data-[collapsible=icon]:justify-center"
             >
               <Link to="/">
-                <span className="text-foreground flex items-center">
+                <span className="flex items-center text-foreground">
                   <Logo className="h-8! w-auto! group-data-[collapsible=icon]:hidden" />
                   <LogoMark className="hidden size-6! group-data-[collapsible=icon]:block" />
                 </span>
@@ -51,7 +53,9 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
-                    isActive={Boolean(matchRoute({ to: item.to, fuzzy: item.to !== '/' }))}
+                    isActive={Boolean(
+                      matchRoute({ to: item.to, fuzzy: item.to !== "/" })
+                    )}
                   >
                     <Link to={item.to}>
                       <item.icon />
@@ -73,5 +77,5 @@ export function AppSidebar() {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
